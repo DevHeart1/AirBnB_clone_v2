@@ -1,42 +1,56 @@
-# File: setup_web_servers.pp
+# This script sets up webservers for the deployment of the webstatic
 
-# Ensure Nginx package is installed
-package { 'nginx':
-  ensure => installed,
+# Update and install nginx if it doesnt exist
+exec {'update':
+  provider => shell,
+  command  => 'apt-get -y update',
 }
 
-# Create necessary directories
-file { ['/data', '/data/web_static', '/data/web_static/releases', '/data/web_static/shared', '/data/web_static/releases/test']:
-  ensure => directory,
+package {'nginx':
+  ensure   => installed,
+  provider => 'apt',
 }
 
-# Create a fake HTML file for testing
-file { '/data/web_static/releases/test/index.html':
-  ensure  => file,
-  content => '<html><body>Test HTML content</body></html>',
+# create folders if they don't exist exits
+exec {'folders':
+  provider => shell,
+  command  => 'mkdir -p /data/web_static/releases/test/ /data/web_static/shared/',
 }
 
-# Create symbolic link (delete and recreate if it exists)
-file { '/data/web_static/current':
-  ensure  => link,
-  target  => '/data/web_static/releases/test',
+# create an html file with fake content to test configuration
+exec {'test':
+  command => '/bin/echo -e "<html>\n\t<head>\n\t</head>\n\t<body>\n\t\t<h1>Hello ALX</h1>\n\t</body>\n</html>" > /data/web_static/releases/test/index.html',
+  path    => '/bin',
 }
 
-exec { 'chown -R ubuntu:ubuntu /data/':
-  path => '/usr/bin/:/usr/local/bin/:/bin/'
+# remove the symbolic link if exist and recreate it
+exec {'remove-old-link':
+  provider => shell,
+  command  => 'rm -rf /data/web_static/current; ln -s /data/web_static/releases/test/ /data/web_static/current',
 }
 
-# Update Nginx configuration
-exec { 'hbnb_static':
-  command	=> "sed -i '57i\\n\tlocation \/hbnb_static {\n\t\talias /data/web_static/current/;\n\t}' /etc/nginx/sites-available/default",
-  provider  => 'shell'
+# give ownership to the user and group ubuntu
+exec {'ownership':
+  provider => shell,
+  command  => 'chown -R ubuntu:ubuntu /data/',
 }
 
-# Restart Nginx after configuration change
-service { 'nginx':
-  ensure  => running,
+service {'nginx':
+  ensure  => 'running',
+  enable  => true,
   require => Package['nginx'],
 }
 
-exec {'/etc/init.d/nginx restart':
+# update the nginx config the content of /data/web_static/current/ to hbnb_static
+exec {'configure':
+  command => '/bin/sed -i "s/^\\s*location \\/ {/\\tlocation \\/hbnb_static {\\n\\t\\talias \\/data\\/web_static\\/current\\/;\\n\\t}\\n\\n&/" /etc/nginx/sites-enabled/default',
+  path    => '/bin',
+  unless  => '/bin/grep -q "^\\s*location \\/hbnb_static {" /etc/nginx/sites-enabled/default',
+}
+
+# restart the server
+exec {'restart':
+  command     => '/usr/sbin/service nginx restart',
+  refreshonly => true,
+  subscribe   => Service['nginx'],
 }
