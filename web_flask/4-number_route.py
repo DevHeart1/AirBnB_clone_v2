@@ -33,5 +33,11 @@ def python_text(text):
     return "Python {}".format(text)
 
 
+@app.route("/number/<int:n>", strict_slashes=False)
+def number_n(n):
+    """Method that returns an integer and a text"""
+    return "{} is a number".format(n)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000,  debug=True)
