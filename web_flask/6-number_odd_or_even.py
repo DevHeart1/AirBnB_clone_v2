@@ -44,13 +44,15 @@ def number_template(n):
     """Method that renders a HTML template and an integer"""
     if isinstance(n, int):
         return render_template('5-number.html', number=n)
-    
+
 
 @app.route("/number_odd_or_even/<int:n>", strict_slashes=False)
 def number_is_odd_or_even(n):
     """Method that renders a HTML page displaying if a number is odd or even"""
     if isinstance(n, int):
-        return render_template('6-number_odd_or_even.html', number=n, result="even" if n % 2 == 0 else "odd" )  
+        return render_template('6-number_odd_or_even.html',
+                               number=n, result="even"
+                               if n % 2 == 0 else "odd")
 
 
 if __name__ == '__main__':
