@@ -22,7 +22,7 @@ def hbnb():
 def c_text(text):
     """Method that returns C and an inputed text"""
     text = text.replace("_", " ")
-    return "C {}".format(text)  
+    return "C {}".format(text)
 
 
 if __name__ == '__main__':
