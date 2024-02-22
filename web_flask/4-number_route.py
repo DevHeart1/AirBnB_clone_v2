@@ -25,7 +25,7 @@ def c_text(text):
     return "C {}".format(text)
 
 
-@app.route("/python/", default={'text': 'is cool'}, strict_slashes=False)
+@app.route("/python/", defaults={'text': 'is cool'}, strict_slashes=False)
 @app.route("/python/<text>", strict_slashes=False)
 def python_text(text):
     """Method that returns Python and an inputed text"""
